@@ -7,4 +7,4 @@ Just few points/suggestions using these notes:
 
 2) First notes are older ones, and topics could spread over a number of notes: so don't stop to the first point matching your interest, check at least all the titles to be sure to not loose anything and to be able to follow the informations till the most recent ones
 
-3) When I refer to files, it should be clear enough to understand what they are about... of course everyone could have different device images, but many of the stated concepts should be generally enough to apply to a bunch of situations
+3) When I refer to files, it should be clear enough to understand what they are about... of course everyone could have different device images, but many of the stated concepts should be general enough to apply to a bunch of situations
