@@ -1,0 +1,497 @@
+
+INDICE
+======
+
+ 1) Installazione di GNS3 su MacOS nonostante Gatekeeper
+ 2) URL da cui scaricare le VM di GNS3
+ 3) Risorse da dedicare alla VM di GNS3
+ 4) Per rimuovere completamente GNS3
+ 5) In caso di crash...
+ 6) Impostare il client VNC
+ 7) Comportamento fuorviante di alcune dialog box di GNS3
+ 8) Dispositivi built-in e scelta server loro istanze
+ 9) Dispositivo "Nat"
+10) Dispositivo "Cloud"
+11) Immagini Cisco .bin e .image
+12) Note sulle immagini Cisco Dynampis
+13) Approfondimento su JunOS Olive come VM VirtualBox
+14) Creazione di symbols .svg da immagini non vettoriali
+15) Collocazione immagini dispositivi nella VM di GNS3
+16) Impostazione tastiera in GNS3 VM
+17) Cambio Symbol dei device
+18) Cartella /opt/gns3/projects/ della GNS3 VM
+19) Varie sulla gestione dei Docker
+20) Rimozione di istanze JunOS Olive & snapshot VirtualBox 
+21) Scelta del numero di vCPUs della GNS3 VM in GNS3 2.0.3
+22) Problema importazione dell'immagine "Windows 10 w/ Edge"
+23) Note sul funzionamento delle immagini Juniper vMX
+24) Correzione hash MD5 in appliance Cumulus-VX
+25) Messaggi durante il boot di Cumulus-VX
+26) Note sul funzionamento delle immagini Juniper vSRX 12.1 e 15.1
+
+
+======
+
+
+1) Se il Mac si lamenta che GNS3 e' corrotto, installarlo avendo prima dato il comando:
+
+	sudo spctl --master-disable
+
+che permette di installare applicazioni provenienti anche da sviluppatori sconosciuti.
+Installare GNS3 e configurare opportunamente anche la VM, poi per riabilitare il comportamento normale del mac usare il comando:
+
+	sudo spctl --master-enable
+
+
+
+
+2) La VM per GNS 2.0.3 puo' essere scaricata da (a seconda del virtualizzatore usato):
+https://github.com/GNS3/gns3-gui/releases/download/v2.0.3/GNS3.VM.VMware.Workstation.2.0.3.zip
+https://github.com/GNS3/gns3-gui/releases/download/v2.0.3/GNS3.VM.VirtualBox.2.0.3.zip
+(link ricavati da wizard richiamabile da menu: Help > Setup Wizard ) 
+
+
+
+
+3) Preliminarmente e' utile installare la VM e avviarla da Fusion (ancora prima di installare GNS3): in questo modo Fusion puo' proporre di aggiornare la versione hardware della VM, il che potrebbe essere necessario per poter innalzare le risorse assegnate.
+Fatto cio', il modo corretto per aumentare la memoria a disposizione della VM e' farlo nella fase di setup iniziale, richiamabile poi anche successivamente da GNS3 dal menu: 
+	
+	Help > Setup Wizard
+
+
+
+
+4) Se necessario rimuovere completamente GNS3, oltre l'applicazione e la VM cancellare:
+
+	~/GNS3			(ma occhio che qua ci sono anche i progetti!)
+	~/.config/gns3.net
+	~/Library/Preferences/net.gns3.plist
+	~/Library/Saved Application State/net.gns3.savedState
+
+
+
+
+5) Qualora GNS3 dovesse crashare, prima di riavviarlo chiudere la macchina virtuale tramite la sua interfaccia grafica (se avviata "headless" aprire Fusion per visualizzarne la schermata), e controllare che non siano rimasti in funzione processi associati a GNS3:
+
+	ps -x | grep gns
+
+Se presenti ucciderli con:	kill -9 PID_PROCESSO
+
+
+
+
+6) E' opportuno configurare come client VNC "Chicken of the VNC" (lo screen sharing di OSX  e' dichiarato avere molti limiti). Per farlo, in GNS3, menu:
+
+	GNS3 > Preferences > General > VNC > Edit
+
+nella dialog che si apre, nel form a tendina scegliere "Chicken of the VNC" ma poi editare il comando sotto cambiando "Chicken of the VNC" in "Chicken" (la nuova versione del programma ha cambiato leggermente il nome)
+
+
+
+
+7) Le varie dialog box che si aprono quando di lavora in GNS3 > Preferences a volte sembrano frizzare l'applicazione. In realta' spesso il vero problema e' che la dialog con il focus e' erroneamente finita nascosta dietro un'altra (sulla quale ovviamente i click del mouse non producono alcuna acquisizione di focus, dando la sensazione di applicazione congelata). Banalmente spostare la dialog che impedisce l'azione su quella col focus e procedere normalmente.
+
+
+
+
+8) Tutti i dispositivi built-in nella categoria "Switches" della GUI principale ("ATM switch", "Ethernet hub", "Ethernet switch", "Frame Relay switch") e "Cloud" o "VPCS" della categoria "End devices" (non "Nat") all'atto dell'uso chiedono su quale server (locale o VM) essere istanziati.
+Inoltre "Ethernet hub", "Ethernet switch", "Cloud" e "VPCS" possono essere preistanziati aggiungendoli con il pulsante New nelle rispettive categorie da menu:
+	
+	GNS3 > Preferences
+
+(le opzioni su cui agire sono ovviamente risicate)
+
+
+
+
+9) il dispositivo "Nat" accetta solo un link, quindi puo' essere utile collegarci uno switch da cui rilanciare verso i nodi di interesse. Semplicemente NATta il/i dispositivo/i collegato/i permettendo di uscire in rete con lo stesso IP del computer che sta ospitando GNS3
+
+
+
+
+10) il dispositivo "Cloud" linka il dispositivo collegato a una delle reti presenti sul server ospitante (identificate dalle interfacce di rete del server che su tali reti si affacciano). 
+Puo' avere piu dispositivi collegati ma ciascuno dovra' essere associato a una rete/interfaccia differente tra quelle disponibili, quindi puo' essere comune metterci a monte uno switch.
+Con GNS3 2.0.3 e' utile istanziare "Cloud" nella VM, sull'interfaccia eth0 , corrispondente alla numerazione 172.16.73.0/24 tramite la quale dal computer ospitante e' gia' possibile raggiungere la shell della VM (in virtu' delle interfacce di rete virtuali create da Fusion durante l'installazione della macchina virtuale). In questo modo dal computer ospitante si potranno raggiungere via rete anche i nodi della topologia dentro GNS3 sfruttando la rete "virtuale" gia' in essere
+
+
+
+
+11) Per passare da un'immagine Cisco compressa .bin a un'immagine Cisco non compressa si puo' usare il comando:
+
+	unzip -p NOMEIMMAGINE.bin > NOMEIMMAGINE.image
+
+Il comando esegue lo stesso scompattamento che fa GNS3 quando per esempio si carica un'immagine Dynamips compressa, ma e' utile anche nel caso si possa far fare tutto a GNS3 perche' quando si installa una immagine su VM, se a GNS3 viene data in pasto l'immagine compressa ne viene salvata una copia scompattata anche in ~/GNS3/images/IOS oltre che nella VM (sprecando quindi inutilmente il doppio dello spazio)
+
+
+
+
+12) Per quanto riguarda le immagini Cisco Dynamips e' opportuno procedere con queste priorita' di installazioni:
+
+	a) Appliance GNS3 con immagini
+	b) Immagini suggerite prive di appliance
+	c) Immagini da SRIJIT BANERJEE's WORKING IMAGES
+
+Per quanto riguarda a) si annota che con GNS3 2.0.3 l'appliance del Cisco 2691 non funziona: si installa ma all'atto dell'uso si frizza all'avvio, spesso rendendo impossibile rimuovere lo switch dal progetto e addirittura facendo crashare GNS3 (sia che l'immagine sia installata nella VM che sia installata nel server locale).
+
+Per quanto riguarda b) si e' provata l'immagine del Cisco 2691 (visto il problema sopra), che sembra funzionante. Per quanto riguarda la memoria e il valore dell'idle-PC si sono usati i valori proposti nella pagina web di GNS3 salvata nella cartella delle immagini (si suggerisce, in caso, di fare analogamente anche per le altre immagini).
+ 
+Per quanto riguarda c) segue l'elenco delle immagini che si e' riusciti a installare nella VM di GNS3 2.0.3 calcolando l'idle-PC.
+In alcuni casi il calcolo ha causato il crash di GNS3; in linea di massima si e' visto che e' meglio calcolarne uno poi salvare il nodo in GNS3, quindi chiudere il programma e riaprirlo per inserire i successivi: comunque e' un approccio euristico non sempre utile, tanto e' vero che non tutte le immagini sono state caricate (poco male vista la disponibilita' delle immagini IOSvL2 e IOSvL3):
+
+	c2691	0x6114a604
+	c3725	0x60bf8288
+	c3745	0x60a80678
+	c7200	0x61d99154
+
+
+
+
+13) Note sull'installazione e il funzionamento di JunOS Olive come VM VirtualBox.
+
+a) Si tratta di una VM VirtualBox, il file "Juniper JunOS Olive12.1R1.9 Virtualbox image.ova" va quindi importato in VirtualBox tramite il menu: 
+	
+	File > Import Appliance... 
+
+Selezionare l' "Expert Mode" in modo da poter selezionare, una volta caricato il file, l'opzione "Reinitialize the MAC address of all network cards" (per sicurezza, non si sa mai, meglio evitare il rischio collisioni anche se probabilmente e' uno zelo eccessivo)
+
+b) Una volta importata la VM, modificare le opzioni di rete in VirtualBox tramite il bottone "Settings" e andando al tab "Network". Si trovera' l'Adapter 1 impostato in modalita' "Bridged Adapter", magari associato all'interfaccia WiFi: questo impedirebbe l'avvio manuale della VM, quantomeno se ospitata su MacOS, in virtu' di peculiarita' dell'AirPort.
+In realta' GNS3 accende la VM in un modo piuttosto particolare che vedremo sotto, ma se vogliamo mantenere la possibilita' di accenderla anche indipendentemente da GNS3 dentro VirtualBox e' opportuno cambiare il setting di rete in, per esempio, "Not attached"
+
+c) In GNS3, da menu: 
+	
+	GNS3 > Preferences > VirtualBox VMs
+
+con il pulsante "New" importare la VM "JunOS Olive".
+Selezionare anche "Use as a linked base VM (experimental)" (spiegazione al punto d)). 
+Una volta che "JunOS Olive" compare nella lista delle VM-templates, premere il pulsante "Edit".
+Nel pannello "General Settings":
+- selezionare l'opzione "Start VM in headless mode" (per evitare che accendendo il nodo si apra automaticamente la sua console VirtualBox, molto meglio -se si vuole- aprirne 
+manualmente la console GNS3, che inoltre mostra anche in piu' le fasi di boot);
+- modificare la "Category" e il "Symbol" come si preferisce (se si carica un simbolo custom da file, questo verra' copiato in ~/GNS3/symbols/).
+Nel pannello "Network":
+- impostare il numero di interfacce che si vuole il dispositivo abbia (provate fino a 8)
+- selezionare "Allow GNS3 to use any configured VirtualBox adapter" (spiegazione al punto e)).
+
+d) L'opzione "Use as a linked base VM (experimental)" fa si che venga creata una nuova VM "figlia" (basata su quella importata) ogni volta che si istanziera' un dispositivo JunOS nella schermata di lavoro principale di GNS3. 
+A onor del vero questa stessa opzione si trova nelle VM Qemu (li non e' sperimentale): in sua assenza, in un progetto sarebbe possibile usare un solo dispositivo di un dato tipo.
+Nel caso delle VM VirtualBox, le VM "figlie" della base compaiono nella finestra dell' "Oracle VM VirtualBox Manager" solo quando un dispositivo di quel tipo viene istanziato nel progetto GNS3 corrente o quando e'contenuto in un progetto in corso di apertura; 
+altrimenti la entry in VirtualBox non compare ("a riposo" e' presente solo la "base" importata inizialmente).
+Ovviamente quando GNS3 accende o spegne un nodo, il power on o off interessa la VM figlia, la base rimane in realta' sempre spenta.
+I file relativi alla VM "figlia" NON si trovano nella cartella standard di VirtualBox:
+
+	~/VirtualBox VMs/
+
+come la VM base, ma piuttosto sotto la cartella del rispettivo progetto:
+
+	~/GNS3/projects/NOME_PROGETTO/project-files/virtualbox/
+
+Inoltre le VM figlie sono "linked clone" della base, quindi dei file di storage (i piu' corposi) sono replicate solo le parti modificate, secondo la filosofia copy-on-write che permette di risparmiare molto spazio su disco.
+
+e) Per far comunicare con il resto della topologia i nodi che sono VM VirtualBox, GNS3 ne modifica il tipo delle interfacce di rete in "Generic Driver / UDP Tunnel" in modo da poterne intercettare le comunicazioni.
+Per poter portare a compimento questa modifica, GNS3 richiede che le interfacce siano impostate a "Not attached" (in VirtualBox, "Settings" della VM, scheda "Network"), altrimenti da' un errore; per evitarlo e convertire le interfacce anche se impostate in altre modalita' e' necessario impostare l'opzione "Allow GNS3 to use any configured VirtualBox adapter".
+Si noti anche che tale conversione avviene all'avvio nel nodo GNS3 e quindi della VM VirtualBox, non prima (per es. non all'atto della creazione del nodo nel progetto GNS3).
+Probabilmente l'opzione "Allow GNS3 to use any configured VirtualBox adapter" non e' strettamente necessaria per le VM "figlie" generate da una VM "linked base" (vedi punto d)) perche' sembra che GNS3 all'atto della creazione della VM figlia ne pre-modifichi le interfacce in "Not Attached" (rendendole quindi compatibili con la successiva conversione, all'avvio della VM, in "Generic Driver / UDP Tunnel"), ma per sicurezza e' meglio selezionare l'opzione visto che non e' chiaro -vista la natura sperimentale delle "linked base VM" in GNS3 2.0.3- se tale pre-conversione verra' mantenuta anche in futuro.
+
+f) Siamo in presenza di una VM FreeBSD senza supporto per l'ACPI, quindi spegnere la macchina accesa con il pulsante di Stop di GNS3 (o equivalentemente con un brutale "Close > Power Off" da VirtualBox) potrebbe causare problemi di integrita' dei dati. Prima di spegnerla si raccomanda quindi, da console del dispositivo su GNS3, di andare al prompt dei comandi di FreeBSD (fuori "cli") e digitare il comando:
+
+	shutdown -p now
+
+e attendere l'output (anche 10+ sec):
+
+	[...]
+	recorded reboot as normal shutdown
+	
+	The operating system has halted.
+	Please press any key to reboot.
+
+prima di spegnere il nodo con il pulsante di GNS3. 
+
+NOTA 1: in VirtualBox la VM risulta accesa fino a che non si agisce sul pulsante di GNS3, perche' mancando il supporto ACPI VirtualBox non ha modo di percepire che la macchina e' gia' in halt -e quindi in sostanza spenta- al completamento del comando dato in console).
+
+NOTA 2: come anche quello durante il boot, l'output durante lo shutdown e' visualizzato nella console di GNS3, ma non in quella di VirtualBox: altra ragione per lasciar perdere quest'ultima, come gia' suggerito al punto c).
+
+
+
+
+14) Per convertire un'immagine non vettoriale in un symbol .svg che riscali abbastanza bene quando  si zooma nella finestra principale di GNS3, e' necessario che l'immagine di partenza sia piuttosto grande.
+Si utilizza poi un programma per convertire l'immagine in un .svg, per esempio:
+	
+	http://www.mobilefish.com/services/image2svg/image2svg.php
+
+Questi tool in pratica non fanno altro che codificare l'immagine in base64 e incapsularla nella struttura a tag del file .svg: l'idea e' quindi codificare un'immagine grande, piu' grande della dimensione a cui normalmente verra' visualizzata, in modo che se ingrandita non perdera' troppo di qualita'.
+Per codificare la dimensione di visualizzazione di default, che per GNS3 2.0.3 e' risultata ragionevole in circa 50 x 50 pixel, e' necessario editare il file .svg, e inserire la dimensione di default desiderata negli attributi "width" e "height" del tag <svg>.
+Si veda per esempio l'inizio del file "comware408x408-51x51.svg":
+
+	<svg 
+     		version="1.1" 
+    	 	xmlns="http://www.w3.org/2000/svg" 
+     		xmlns:xlink="http://www.w3.org/1999/xlink" 
+     		width="51px" height="51px" 
+     		viewBox="0 0 408 408" preserveAspectRatio="none"> 
+   	<g> 
+	<image width="408" height="408" xlink:href="data:image/png;base64, 
+	iVBORw0KGgoAAAANSUhEUgAAAZgAAAGYCAYAAAB/O/RVAAAABGdBTUEAALGPC/xhBQAAACBjSFJN
+	AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsTAAALEwEAmpwY
+
+In questo caso l'immagine originale ha una dimensione di 408x408 pixel, e una dimensione di default di 51x51 (scelta cosi' perche' esattamente 1/8).
+Si noti che i campi "width" e "height" del tag <image> non vanno modificati perche' danno un senso dimensionale alla codifica raster base64 dell'immagine originale, come non vanno modificate le dimensioni massime di "viewBox" perche' tale attributo definisce le coordinate logiche tramite le quali vengono gestite quelle reali... il che e' utile soprattutto usando le primitive vettoriali, ma anche ora le dimensioni devono coincidere con quelle dell'immagine: infatti avendo provato  a settare:
+	
+	viewBox="0 0 51 51"
+
+l'immagine e' risultata visualizzata solo nell'angolo in alto a sinistra, appunto per 51x51 pixel.
+
+
+
+
+15) Nella VM di GNS3 (per lo meno nella versione 2.0.3) le immagini dei dispositivi caricati nella VM sono in sottocartelle di:
+
+	/opt/gns3/images/
+
+In caso di rimozione tramite l'interfaccia di GNS3 di un dispositivo precedentemente installato, se necessario cancellare manualmente i file relativi non piu' necessari (occhio pero' ai file eventualmente condivisi con altri dispositivi, ad esempio gli "empty*.qcow2").
+
+
+
+
+16) Per impostare la tastiera italiana in dotazione all'iMac 21" 4K 2017, dal wizard testuale principale della GNS3 VM selezionare "Keyboard    Change keyboard layout", e nelle schermate che seguono segliere, nel'ordine:
+
+	Keyboard model: Apple 
+	Country of origin for the keyboard: Italian 
+	Keyboard layout: Italian
+	Key to function as AltGr: The default for the keyboard layout
+	Compose key: No compose key
+
+
+
+
+17) Se e' necessario cambiare il symbol associato a un device, e' meglio farlo schermata principale di GNS3, aprendo la lista dei nodi. Infatti arrivandoci dal menu':
+
+	GNS3 > Preferences > ...
+
+non sempre il cambio di immagine avviene correttamente (in quei casi, nella lista il device rimane senza immagine).
+Inoltre se, durante delle prove, un symbol viene modificato senza cambiare il nome del suo file sembra intervenire un meccanismo di caching di GNS3 per cui il caricamento del nuovo risulta comunque nella visualizzazione del vecchio; per evitarlo, riavviare GNS3 prima di caricare un symbol modificato con nome del file invariato rispetto a uno precedente.
+
+
+
+
+18) Sulla GNS3 VM, le cartelle sotto /opt/gns3/projects (che per nome hanno un UUID) se cancellate vengono ricreate all'apertura del progetto corrispondente nella schermata principale di GNS3 (la corrispondenza deriva dallo UUID dentro file_di_progetto.gns3, file tipicamente in ~/GNS3/projects/ ).
+
+
+
+
+19) Esempi comandi per Docker da prompt della GNS3 VM:
+
+	docker				visualizza comandi
+	docker image			visualizza comandi per gestione Immagini
+	docker container		visualizza comandi per gestione Container
+	docker ps			elenca Container in esecuzione
+
+	docker image ls			elenca Immagini installate
+	docker images			  "       "         "
+	docker image rm IMAGE_ID	cancella Immagine con ID IMAGE_ID
+	docker rmi IMAGE_ID		   "        "      "         "
+
+	docker container ls		elenca Container
+	docker container rm IMAGE_ID	cancella Container con ID IMAGE_ID
+	docker rm IMAGE_ID		   "        "       "         "
+
+	docker system prune		cancella tutto cio' che non e' usato
+
+
+GNS3 si comporta nelle seguenti maniere in relazione alle Immagini/Container di cui ai comandi sopra:
+
+- quando si installa (magari tramite una appliance .gns3a) un nodo basato su Docker, non succede nulla; 
+- quando il nodo viene istanziato per la prima volta, GNS3 si collega al Docker Hub e scarica l'immagine (se non e' gia' presente nel Docker);
+- quando il nodo viene avviato, compare il Container;
+- quando il nodo viene spento, il Container viene distrutto (*); 
+- quando il nodo viene cancellato dal piano di lavoro di GNS3 (su cui era stato istanziato) non succede nulla (*);
+- quando il nodo viene disinstallato da GNS3 (cioe' lo si rimuove da GNS3 > Preferences > Docker > Docker Containers) non succede nulla. Per cancellare davvero l'immagine bisogna farlo da prompt con il comando visto sopra.
+
+(*) Attenzione a come si spegne il nodo docker: in certi casi (provato Open vSwitch e Ubuntu) cancellare poi il nodo risulta in un errore!!
+Da:  https://gns3.com/discussions/cannot-delete-ubuntu-docker-node
+" [...]
+Andrea Barontini
+Posted July 23, 2017
+It happens to me as well, with openvswitch docker: I instantiate it in GNS3 VM 2.0.3 running on macOS 10.12.5. From my tests, it seems related to the way I switch off the docker node: if I power it off via the red button of GNS3 GUI all goes well, no problem deleting the node.. instead if I digit the "exit" command in node's prompt, I get the same error message as the OP.
+Worthy of note, trying to cancel the project manually from /opg/gns3/projects/ in GNS3 VM, it needs "sudo" ONLY when I switch off the node in the "wrong" way... that's because in one of the subfolders only in that case there are a couple of file owned by root: "conf.d" and ".conf.db~lock~".
+So my suspect is that "exit" switch-off doesn't handle correctly docker's resources release, and for some reasons it also causes that strange GNS3 error message.
+It would be nice if anyone could confirm the same troubleshooting results. Thanks 
+
+Andrea Barontini
+Posted July 23, 2017
+just to add I had tried ubuntu 16.04 docker node as well, and I got the same phenomenology 
+
+[...]
+
+Bernhard Ehlers
+Posted July 24, 2017
+Ok, that's easy to reproduce.
+- Create a new project
+- Add a docker VM, that has persistent directories, e.g. ipterm, ubuntu, ...
+- Start it
+- stop it within the VM, e.g. "exit" the bash
+- delete that VM
+Normally when a docker container is halted, the permissions of the volume directories are saved and then reset to the uid/gid of the gns3-server. When a docker container is not haltet by GNS3, but exits (normally or abnormally), then this save permission function can't run. The volume directories are still owned by root. That will create trouble, when you delete that node.
+Workaround: Always halt a docker container using GNS3 Stop. If you accidentally stopped the container within the docker VM, then start/stop it from GNS3. That will cleanup the permissions.
+
+Andrea Barontini
+Posted July 24, 2017
+Thanks Bernhard, that's the kind of explanation i was hoping to read. I can only add that I confirm the start/stop workaroud for both Ubuntu and Open vSwitch dockers.
+I have also discovered that it's important to avoid trying node deletion before the workaround, otherwise it will not work because node will not restart (i guess deletion after "exit" delete "not enough" stuff to remove the node, but "too much" to restart it ;) ).
+In case the trying-deletion occurs, you can close GNS3 then reopen the project.. after doing that, start/stop will work again (don't know why but it works).
+Let's hope all of this will be fixed (if possible) in next GNS3 releases... because otherwise you have to remember the right switch-off way for different nodes kinds (for example JunOS Olive needs to be switched off by its own CLI, not GNS3 button, to avoid data corruption because it's a non-ACPI VM...) 
+
+Bernhard Ehlers
+Posted July 24, 2017
+Well I got used to this. What I do, is to first shutdown the VMs off, that need that (like Olive). Then stop the rest by GNS3.
+It's not easy to fix the current docker stop issue. Either GNS3 has to use sudo to delete the node or use acl. Both is not that simple. 
+"
+
+
+
+
+20) Quando si ha un'istanza JunOS Olive nel piano di lavoro di GNS3 e la si rimuove, i file di storage "copy-on-write" contenuti in:
+
+	~/GNS3/projects/NOME_PROGETTO/project-files/virtualbox/
+
+vengono cancellati. Tuttavia il fatto non viene notificato al meccanismo interno di VirtualBox che gestisce le immagini "linked-clone", quindi ai successivi avvii del VirtualBox Manager viene presentato un errore, i cui dettagli sono visualizzabili da menu:
+
+	File > Virtual Media Manager...
+
+Per eliminare l'errore rimuovere (tramite menu richiamabile con tasto destro del mouse) gli elementi allarmati (rossi), con l'accortezza di cancellare prima gli item "contenuti" e poi quelli "contenitori" (quindi dall'item allarmato piu' nidificato a quello piu' "esterno").
+
+
+
+
+21) A proposito della scelta del numero di vCPUs della GNS3 VM in GNS3 2.0.3:
+"
+Stated the operating system and the introductory level of this video, maybe my comment is a bit OT but I think it could be useful to witness that on GNS3 2.0.3 running on MacOS 10.12 w/ Fusion 8.5 the vCPUs number selector doesn't actually work, neither in menu GNS3 > Preferences > GNS3 VM nor in wizard available via menu Help > Setup Wizard (i tried with VM switched off as well): the only way to get /proc/cpuinfo in the VM reporting a different number of cpus/cores is to change them in Fusion's VM Settings. Hope this note could be useful to anyone :) Bye
+"
+
+
+
+
+22) L'immagine "Windows 10 w/ Edge" viene importata senza apparenti problemi in GNS3, ma quando si istanzia genera l'errore:
+
+	Error while setting up node: The image MSEdge - Win10_preview.vmdk is missing
+
+Questo e' dovuto al fatto che nel template dell'immagine il nome del file non e' correttamente impostato a "MSEdge_-_Win10_preview.vmdk";
+
+per correggere la situazione, da menu:
+
+	GNS3 > Preferences... > QEMU > Qemu VMs
+
+selezionare "Windows 10 w/ Edge", premere il pulsante "Edit", selezionare il tab "HDD" e modificare il valore di "Disk image:" da:
+
+	MSEdge - Win10_preview.vmdk
+
+a:
+
+	MSEdge_-_Win10_preview.vmdk
+
+
+
+
+23) Note sul funzionamento delle immagini Juniper vMX
+
+a) Sia la versione 14.1R1.10 che la 14.1R4.8 durante il boot presentano sempre un warning:
+
+Creating initial configuration...Chassis control process: <xnm:warning xmlns="http://xml.juniper.net/xnm/1.1/xnm" xmlns:xnm="http://xml.juniper.net/xnm/1.1/xnm">
+Chassis control process: <source-daemon>chassisd</source-daemon>
+Chassis control process: <message>WARNING: Chassis configuration for network services has been changed. A system reboot is mandatory.  Please reboot the system NOW. Continuing without a reboot might result in unexpected system behavior.</message>
+Chassis control process: </xnm:warning>
+
+forse ha a che fare con il Forwarding Plane che impiega un po' di minuti ad attivarsi (vedi file "Importing vMX and vQFX into GNS3 - GNS3.html") e quindi non e' presente al boot come magari i check si aspetterebbero. Comunque apparentemente la cosa non crea problemi (almeno alla data della stesura di questa nota)
+
+b) Sia la versione 14.1R1.10 che la 14.1R4.8 hanno bisogno del comando (vedi istruzioni per l'installazione): 
+
+	echo 'vm_local_rpio="1"' >> /boot/loader.conf
+
+per attivare il Forwarding Plane co-locato nella VM del Control Plane
+(invece che cercarlo in un'ALTRA virtual machine)
+
+c) La versione 14.1R3.5 non parte perche' l'immagine disco non viene riconosciuta.
+Per rendersene conto e' necessario usare come console type "vnc" invece che "telnet" ("vnc" mima lo schermo del dispositivo invece che la porta console, quindi mostra anche le primissime fasi del boot, quando viene cercata un'immagine avviabile)
+
+d) Come anche JunOS Olive, per evitare che al riavvio i nodi si lamentino e ripristino il file system corrotto e' necessario -prima di spegnerli dall'interfaccia di GNS3- metterli in halt da console tramite il comando (da fuori CLI):
+
+	root@% shutdown -p now
+
+oppure (da dentro CLI in Operational Mode):
+
+	root@% cli
+	root> request system halt
+
+
+
+
+24) L'hash MD5 del file "cumulus-linux-3.4.1-vx-amd64.qcow2" non corrisponde a quello riportato nell'appliance "cumulus-vx.gns3a".
+La dimensione del file coincide esattamente, l'hash invece coincide con il valore indicato nell'appliance per la versione "3.4.0"; tale apparente 'scambio di hash' e' presente anche nella pagina web di documentazione.
+Si e' quindi creata l'appliance "cumulus-vx_BYBARO.gns3a" in cui l'hash per la versione "3.4.1" e' uguale a quello della versione "3.4.0" e quindi uguale all'hash effettivo del file "cumulus-linux-3.4.1-vx-amd64.qcow2": in tal modo il nodo e' stato installato in GNS3 senza problemi.
+Sospettando lo 'scambio di hash' non si e' cancellata l'appliance originale "cumulus-vx.gns3a", qualora sia necessaria un'operazione analoga nell'eventualita' dell'installazione della versione "3.4.0" del nodo.
+
+
+
+
+25) Dopo il primo avvio di un nodo Cumulus-VX (durante il quale probabilmente avviene l'installazione vera e proprio del software), i riavvii successivi del nodo sono completamente silenti (nessun output) fino alla richiesta di username e password.
+Per ripristinare la visualizzazione dei messaggi di boot entrare sull'appliance e editare:
+
+    sudo vi /etc/default/grub
+
+modificare la riga:
+
+    GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+
+in:
+
+    GRUB_CMDLINE_LINUX_DEFAULT=""
+
+L'inizio del file di configurazione risultera' quindi in una cosa del tipo (testato su Cumulus-VX 3.4.1):
+
+    GRUB_DEFAULT=0
+    GRUB_TIMEOUT=5
+    GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+    GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+    GRUB_CMDLINE_LINUX="cl_platform=cumulus_vx console=ttyS0,115200n8 console=tty0"
+
+Una volta usciti da "vi" reinstallare quindi grub con il comando:
+
+    sudo update-grub
+
+I successi riavvi mostreranno i messaggi di boot.
+
+
+
+
+26) Note sul funzionamento delle immagini Juniper vSRX
+
+a) L'appliance juniper-vsrx.gns3a riserva 4GB di RAM anche per vSRX 12, ma sulla pagina web di accompagnamento si legge:
+
+	"Juniper version 12 can support only 1GB of ram."
+
+Quindi tanto vale correggere la risorsa RAM assegnata nel template a 1GB, per non sprecarne.
+
+b) Nella configurazione dell'immagine di vSRX 15.1 e' necessario, nella scheda Network, modificare il campo "Type" da "Intel Gigabit Ethernet (e1000)" a "VMWare Paravirtualized Ethernet v3 (vmx3net)".
+Altrimenti quasi subito il boot del nodo si ferma all'errore:
+
+	Failed to access perfctr msr (MSR c1 is 0)
+
+e non procede oltre. Comunque anche una volta avviata la versione 15.1 risulta percepibilmente piu' lenta della 12.1, anche nelle comuni attività.
+
+c) All'accensione sia la versione 12.1 che 15.1 di vSRX impiegano un po' di tempo, dopo essere arrivati al login, per attivare il forwarding plane (come avviene con le istanze vMX).
+Lo si puo' verificare con i seguenti comandi (in Operational Mode):
+
+	root> show chassis fpc pic-status 
+e
+	root> show interfaces ge-* terse 
+
+A forwarding plane attivo riportano, rispettivamente, "PIC 0 Online" e la lista delle interfacce "ge-0/0/".
+
+d) Nel piano di lavoro di GNS3, quando per esempio si aggiunge un link ai nodi vSRX, sia la versione 12.1 che la 15.1 riportano 6 interfacce disponibili, dalla ge-0/0/0 alla ge-0/0/5. 
+Nel caso della versione 12.1 i nomi delle interfacce nel piano di lavoro di GNS3 mappano esattamente i nomi delle 6 interfacce nella configurazione di Junos, nel caso della 15.1 invece la ge-0/0/0 in GNS3 corrisponde alla fxp0 in Junos (e infatti nella configurazione Junos sono disponibili solo 5 interfacce "ge", dalla ge-0/0/0 alla ge-0/0/4, che mappano le interfacce nel piano di lavoro GNS3 dalla ge-0/0/1 alla ge-0/0/5).
+
+e) Entrambe le versioni di vSRX hanno l'interfaccia Web già installata (a differenza di vMX): a livello di configurazione Junos nella 12.1 risulta attiva sull'interfaccia ge-0/0/0, nella 15.1 sull'interfaccia fpx0 (quindi, per quanto detto nel punto d), a livello di piano di lavoro GNS3 sull'interfaccia ge-0/0/0 per entrambe).
+
+
+
+
+byBaro, 20180308
