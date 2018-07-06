@@ -1,6 +1,14 @@
 
-INDICE
-======
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+*                                                                         *
+* UPDATE 21080706                                                         *
+* Beginning with point 27), notes are taken in English (Italian earlier)  *
+*                                                                         *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+
+SUMMARY
+=======
 
  1) Installazione di GNS3 su MacOS nonostante Gatekeeper
  2) URL da cui scaricare le VM di GNS3
@@ -28,6 +36,11 @@ INDICE
 24) Correzione hash MD5 in appliance Cumulus-VX
 25) Messaggi durante il boot di Cumulus-VX
 26) Note sul funzionamento delle immagini Juniper vSRX 12.1 e 15.1
+
+27) Notes about Palo Alto images
+28) vSRX images dealing with GNS3 VM's number of vCPUs
+
+
 
 
 ======
@@ -494,4 +507,26 @@ e) Entrambe le versioni di vSRX hanno l'interfaccia Web già installata (a diffe
 
 
 
-byBaro, 20180308
+27) Notes about Palo Alto images
+
+a) The file "PA-VM-ESX-8.0.0-disk1.vmdk" has been extracted from "PA-VM-ESX-8.0.0.ova", once downloaded and renamed as .zip.
+The other two files contained into the zip ("PA-VM-ESX-8.0.0.mf" and 
+"PA-VM-ESX-8.0.0.ovf") have been copied into "PA-VM-ESX-8.0.0.ova/" folder, so to be able to recreate original .ova file if needed (the .zip file resulting from .ova renaming has  been deleted after extractions to avoid waste of space).
+
+b) Into original .gns3a appliance, version "8.0.0 (ESX)"'s file name is wrongly stated 
+("PA-VM-ESX-8.0.0-disk1.vmdk2" instead of correct "PA-VM-ESX-8.0.0-disk1.vmdk"). That has been corrected in "_BYBARO" appliance.
+
+
+
+
+28) vSRX images dealing with GNS3 VM's number of vCPUs
+
+With GNS3 2.1.4 on macOS High Sierra 10.13.3 (but I guess it's a general requirement not related to software versions) it's necessary to assign at least 2 vCPUs to GNS3 VM so that  vSRX images could run without troubles; otherwise GNS3 VM's vCPU jumps to 100%, vSRX's CLI responsiveness really slows down, and forwarding plane isn't activated (tested only with version 12.1X47-D20, but conceivably same or worst with version 15.1X49-D80, fatter).
+Remember that the correct way to modify GNS3 VM's number of vCPUs is to use the wizard available in GNS3 menu:
+
+	Help > Setup Wizard
+
+
+
+
+byBaro, 20180706
