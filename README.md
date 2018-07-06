@@ -3,7 +3,7 @@ My own unleashed notes about GNS3 and appliances, taken while working with GNS3.
 
 Just few points/suggestions using these notes:
 
-1. Unluckily now they are written in Italian, my mother tongue, 'cause I wasn't expecting to share when I have begun to take them. I hope Google Translate can help you if don't master my language; if something is obscure feel free to contact me. I promise myself to take next notes in English.
+1. Unluckily now they are written in Italian, my mother tongue, 'cause I wasn't expecting to share when I have begun to take them. I hope Google Translate can help you if don't master my language; if something is obscure feel free to contact me. I promise myself to take next notes in English.  
   
 **UPDATE Jul 6th, 2018** - Beginning with point 27) added today, July 6th, notes are taken in English
 
